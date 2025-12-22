@@ -1,3 +1,3 @@
 #!/bin/bash
-go build -o main src/main.go
+go build -o main cmd/sentrigoV2/main.go
 sudo ./main
