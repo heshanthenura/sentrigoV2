@@ -1,0 +1,1 @@
+clang -O2 -target bpf -c drop_packets.c -o drop_packets.o
