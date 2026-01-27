@@ -1,1 +1,1 @@
-clang -O2 -target bpf -c drop_packets.c -o drop_packets.o
+clang -O2 -g -target bpf -c interceptor.c -o interceptor.o
