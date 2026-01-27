@@ -1,0 +1,1 @@
+clang -O2 -g -target bpf -c interceptor.c -o interceptor.o
