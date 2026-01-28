@@ -71,7 +71,7 @@ func LinkEBPF() *ebpf.Map {
 
 	blockedIP := net.ParseIP("172.17.0.2").To4()
 	if blockedIP != nil {
-		var ipKey uint32 = binary.BigEndian.Uint32(blockedIP)
+		var ipKey uint32 = binary.LittleEndian.Uint32(blockedIP)
 		var value uint8 = 1
 		fmt.Printf("%d\n", ipKey)
 		blocked.Put(ipKey, value)
