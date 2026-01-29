@@ -1,9 +1,12 @@
 package main
 
 import (
-	"github.com/heshanthenura/sentrigov2/internal/capture"
+	"github.com/gin-gonic/gin"
+	"github.com/heshanthenura/sentrigov2/api/v1/routes"
 )
 
 func main() {
-	capture.StartCapture()
+	r := gin.Default()
+	routes.SetupRoutes(r)
+	r.Run(":8080")
 }

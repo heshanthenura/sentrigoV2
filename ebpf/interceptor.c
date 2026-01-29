@@ -29,7 +29,7 @@ int block_ips(struct xdp_md *ctx)
     if ((void *)(ip + 1) > data_end)
         return XDP_PASS;
 
-    __u32 src_ip = (ip->saddr);
+    __u32 src_ip = bpf_ntohl(ip->saddr);
     __u8 *exists = bpf_map_lookup_elem(&blocked_ips, &src_ip);
 
     if (exists)

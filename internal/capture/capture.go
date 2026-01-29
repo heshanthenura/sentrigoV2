@@ -1,103 +1,60 @@
 package capture
 
 import (
-	"encoding/binary"
+	"context"
 	"fmt"
 	"log"
-	"net"
 
-	"github.com/cilium/ebpf"
-	"github.com/cilium/ebpf/link"
 	"github.com/google/gopacket"
-	"github.com/google/gopacket/layers"
 	"github.com/google/gopacket/pcap"
+	"github.com/heshanthenura/sentrigov2/internal/types"
+	"github.com/heshanthenura/sentrigov2/internal/utils"
 )
 
-type IP struct {
-	Source string
-	Count  int
-}
+func StartCapture(ctx context.Context, captureConfig types.CaptureConfig) error {
+	log.Printf("starting capture on interface: %s", captureConfig.IfaceName)
 
-var IPs []IP
-var blockedMap *ebpf.Map
-var xdpLink link.Link
-var ifaceName = "docker0"
-
-func StartCapture() {
-
-	blockedMap = LinkEBPF()
-
-	fmt.Println("capture starts")
-	device := ifaceName
-	snaphotLen := int32(1600)
-	promiscuous := false
-	timeout := pcap.BlockForever
-
-	handle, err := pcap.OpenLive(device, snaphotLen, promiscuous, timeout)
-
+	handle, err := pcap.OpenLive(
+		captureConfig.IfaceName,
+		captureConfig.SnapshotLen,
+		captureConfig.Promiscuous,
+		captureConfig.Timeout,
+	)
 	if err != nil {
-		log.Fatal(err)
+		log.Printf("failed to open interface %s: %v", captureConfig.IfaceName, err)
+		return fmt.Errorf("pcap.OpenLive: %w", err)
 	}
 
-	defer handle.Close()
+	shutdownDone := make(chan struct{})
+	go func() {
+		<-ctx.Done()
+		log.Println("closing packet source...")
+		handle.Close()
+		close(shutdownDone)
+	}()
 
 	packetSource := gopacket.NewPacketSource(handle, handle.LinkType())
 
-	for packet := range packetSource.Packets() {
-		processPacket(packet)
-	}
-}
+	for {
+		select {
+		case <-ctx.Done():
+			log.Println("capture stopped")
+			<-shutdownDone
+			return nil
 
-func LinkEBPF() *ebpf.Map {
-	spec, err := ebpf.LoadCollectionSpec("ebpf/interceptor.o")
-
-	if err != nil {
-		log.Fatalf("load spec: %v", err)
+		case packet, ok := <-packetSource.Packets():
+			if !ok {
+				log.Println("packet source closed")
+				return nil
+			}
+			func() {
+				defer func() {
+					if r := recover(); r != nil {
+						log.Printf("recovered from panic in ProcessPacket: %v", r)
+					}
+				}()
+				utils.ProcessPacket(packet)
+			}()
+		}
 	}
-	coll, err := ebpf.NewCollection(spec)
-	if err != nil {
-		log.Fatalf("new collection: %v", err)
-	}
-
-	prog := coll.Programs["block_ips"]
-	if prog == nil {
-		log.Fatalf("program block_ips not found")
-	}
-
-	blocked := coll.Maps["blocked_ips"]
-	if blocked == nil {
-		log.Fatalf("map blocked_ips not found")
-	}
-
-	blockedIP := net.ParseIP("172.17.0.2").To4()
-	if blockedIP != nil {
-		var ipKey uint32 = binary.LittleEndian.Uint32(blockedIP)
-		var value uint8 = 1
-		fmt.Printf("%d\n", ipKey)
-		blocked.Put(ipKey, value)
-	}
-
-	iface, err := net.InterfaceByName(ifaceName)
-	if err != nil {
-		log.Fatalf("iface %s: %v", ifaceName, err)
-	}
-	lk, err := link.AttachXDP(link.XDPOptions{
-		Program:   prog,
-		Interface: iface.Index,
-	})
-	if err != nil {
-		log.Fatalf("attach xdp: %v", err)
-	}
-	xdpLink = lk
-	log.Printf("XDP attached to %s", iface.Name)
-	return blocked
-}
-
-func processPacket(packet gopacket.Packet) {
-
-	ipLayer := packet.Layer(layers.LayerTypeIPv4)
-	if ipLayer != nil {
-		fmt.Println(ipLayer.(*layers.IPv4).SrcIP.String())
-	}
-
 }
