@@ -61,3 +61,13 @@ func (m *JobManager) Cancel(name string) {
 		log.Println("Cancelled job:", name)
 	}
 }
+
+func (m *JobManager) CancelAll() {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	for name, cancel := range m.jobs {
+		cancel()
+		log.Println("Cancelled job:", name)
+	}
+	m.jobs = make(map[string]context.CancelFunc)
+}

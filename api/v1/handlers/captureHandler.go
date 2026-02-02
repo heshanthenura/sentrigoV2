@@ -27,8 +27,35 @@ func StartCapture(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	if req.IfaceName == "" || req.SnapshotLen == 0 || req.Timeout == 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "all fields must be filled"})
+
+	if req.IfaceName == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "interface name is required"})
+		return
+	}
+	if req.SnapshotLen <= 0 || req.SnapshotLen > 65535 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "snapshot length must be between 1 and 65535"})
+		return
+	}
+	if req.Timeout == 0 || req.Timeout < -1 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "timeout must be -1 (block forever) or greater than 0"})
+		return
+	}
+
+	devices, err := utils.GetAllInterfaces()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get interfaces"})
+		return
+	}
+
+	interfaceExists := false
+	for _, dev := range devices {
+		if dev.Name == req.IfaceName {
+			interfaceExists = true
+			break
+		}
+	}
+	if !interfaceExists {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "interface not found"})
 		return
 	}
 
