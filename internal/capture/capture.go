@@ -1,43 +1,60 @@
 package capture
 
 import (
+	"context"
 	"fmt"
+	"log"
 
 	"github.com/google/gopacket"
+	"github.com/google/gopacket/pcap"
+	"github.com/heshanthenura/sentrigov2/internal/types"
+	"github.com/heshanthenura/sentrigov2/internal/utils"
 )
 
-type CaptureConfig struct {
-	Interface string
-	SnapLen   int32
-	Promisc   bool
-}
+func StartCapture(ctx context.Context, captureConfig types.CaptureConfig) error {
+	log.Printf("starting capture on interface: %s", captureConfig.IfaceName)
 
-func StartCapture(cfg CaptureConfig) error {
-	handle, err := openHandle(cfg)
+	handle, err := pcap.OpenLive(
+		captureConfig.IfaceName,
+		captureConfig.SnapshotLen,
+		captureConfig.Promiscuous,
+		captureConfig.Timeout,
+	)
 	if err != nil {
-		return err
+		log.Printf("failed to open interface %s: %v", captureConfig.IfaceName, err)
+		return fmt.Errorf("pcap.OpenLive: %w", err)
 	}
-	defer handle.Close()
 
-	packetSource := newPacketSource(handle)
+	shutdownDone := make(chan struct{})
+	go func() {
+		<-ctx.Done()
+		log.Println("closing packet source...")
+		handle.Close()
+		close(shutdownDone)
+	}()
 
-	fmt.Println("Listening on", cfg.Interface)
-
-	packetChan := make(chan gopacket.Packet, 1000)
-	go logPackets(packetChan)
-
-	var count uint64
+	packetSource := gopacket.NewPacketSource(handle, handle.LinkType())
 
 	for {
-		packet, err := packetSource.NextPacket()
-		if err != nil {
-			continue
-		}
-
-		count++
 		select {
-		case packetChan <- packet:
-		default:
+		case <-ctx.Done():
+			log.Println("capture stopped")
+			<-shutdownDone
+			return nil
+
+		case packet, ok := <-packetSource.Packets():
+			if !ok {
+				log.Println("packet source closed")
+				return nil
+			}
+			func() {
+				defer func() {
+					if r := recover(); r != nil {
+						log.Printf("recovered from panic in ProcessPacket: %v", r)
+					}
+				}()
+				utils.ProcessPacket(packet)
+			}()
 		}
 	}
 }
