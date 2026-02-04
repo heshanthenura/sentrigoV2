@@ -9,6 +9,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/heshanthenura/sentrigov2/api/v1/routes"
 	"github.com/heshanthenura/sentrigov2/internal/job"
@@ -16,7 +17,22 @@ import (
 
 func main() {
 	r := gin.Default()
+	r.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"http://192.168.1.101:5173", "http://localhost:5173"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE"},
+		AllowHeaders:     []string{"Content-Type"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+	}))
+
 	routes.SetupRoutes(r)
+
+	r.Static("/assets", "./frontend/dist/assets")
+	r.StaticFile("/vite.svg", "./frontend/dist/vite.svg")
+
+	r.NoRoute(func(c *gin.Context) {
+		c.File("./frontend/dist/index.html")
+	})
 
 	srv := &http.Server{
 		Addr:         ":8080",
