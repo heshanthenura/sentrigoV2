@@ -59,10 +59,10 @@ func StartCapture(c *gin.Context) {
 		return
 	}
 
-	if job.GetJobManager().IsRunning("captureJob") {
-		c.JSON(http.StatusConflict, gin.H{"error": "capture already running"})
-		return
-	}
+	// if job.GetJobManager().IsRunning("captureJob") {
+	// 	c.JSON(http.StatusConflict, gin.H{"error": "capture already running"})
+	// 	return
+	// }
 
 	job.GetJobManager().Start(
 		"captureJob",
