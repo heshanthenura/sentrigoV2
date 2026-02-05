@@ -7,8 +7,8 @@ import (
 
 	"github.com/google/gopacket"
 	"github.com/google/gopacket/pcap"
+	"github.com/heshanthenura/sentrigov2/internal/processors"
 	"github.com/heshanthenura/sentrigov2/internal/types"
-	"github.com/heshanthenura/sentrigov2/internal/utils"
 )
 
 func StartCapture(ctx context.Context, captureConfig types.CaptureConfig) error {
@@ -53,7 +53,7 @@ func StartCapture(ctx context.Context, captureConfig types.CaptureConfig) error 
 						log.Printf("recovered from panic in ProcessPacket: %v", r)
 					}
 				}()
-				utils.ProcessPacket(packet)
+				processors.ProcessPacket(packet)
 			}()
 		}
 	}

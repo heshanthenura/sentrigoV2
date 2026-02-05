@@ -8,8 +8,6 @@ import (
 
 	"github.com/cilium/ebpf"
 	"github.com/cilium/ebpf/link"
-	"github.com/google/gopacket"
-	"github.com/google/gopacket/layers"
 	"github.com/google/gopacket/pcap"
 	"github.com/heshanthenura/sentrigov2/internal/config"
 	"github.com/heshanthenura/sentrigov2/internal/types"
@@ -67,13 +65,4 @@ func LinkEBPF(captureConfig types.CaptureConfig) (*ebpf.Map, error) {
 	config.XDPLink = lk
 	log.Printf("XDP attached to %s", iface.Name)
 	return blocked, nil
-}
-
-func ProcessPacket(packet gopacket.Packet) {
-
-	ipLayer := packet.Layer(layers.LayerTypeIPv4)
-	if ipLayer != nil {
-		fmt.Println(ipLayer.(*layers.IPv4).SrcIP.String())
-	}
-
 }
