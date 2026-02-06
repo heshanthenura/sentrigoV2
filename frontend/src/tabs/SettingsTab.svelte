@@ -2,21 +2,9 @@
   import axios from "axios";
   import { List, Network } from "lucide-svelte";
   import { onMount } from "svelte";
-
-  type StartParameters = {
-    iface_name: string;
-    snapshot_len: number;
-    promiscuous: boolean;
-    timeout: number;
-  };
-
+  import { captureConfig } from "../stores";
+  import { startCapture } from "../lib/utils";
   let interfaces: any[] = [];
-  let startParams: StartParameters = {
-    iface_name: "",
-    snapshot_len: 65535,
-    promiscuous: false,
-    timeout: -1,
-  };
 
   async function getInterfaces() {
     try {
@@ -25,24 +13,21 @@
       );
       interfaces = response.data;
       if (response.data.length > 0) {
-        startParams.iface_name = response.data[0].Name;
+        captureConfig.update((current) => ({
+          ...current,
+          iface_name: response.data[0].Name,
+        }));
       }
     } catch (error) {
       console.error("Error fetching interfaces:", error);
     }
   }
 
-  async function startCapture() {
-    try {
-      const response = await axios.post(
-        import.meta.env.VITE_API_URL + "/capture/start",
-        startParams,
-      );
-      console.log(response.data);
-    } catch (error) {
-      console.error("Error starting capture:", error);
-    }
+  async function handleApply() {
+    await startCapture($captureConfig);
   }
+
+
 
   onMount(() => {
     getInterfaces();
@@ -52,7 +37,7 @@
 <div
   class="flex flex-col items-center px-[20px] gap-[30px] overflow-y-auto h-full"
 >
-  <div class="w-full max-w-2xl">
+  <div class="w-full max-w-[1000px]">
     <h1 class="text-white font-bold text-[40px]">System Settings</h1>
     <p class="text-gray-400 text-[16px]">
       Configure your intrusion detection parameters and secure network
@@ -61,7 +46,7 @@
   </div>
 
   <div
-    class="w-full max-w-2xl flex flex-col bg-[#1E293B] rounded-lg text-white py-[30px] px-[25px] gap-[20px]"
+    class="w-full max-w-[1000px] flex flex-col bg-[#1E293B] rounded-lg text-white py-[30px] px-[25px] gap-[20px]"
   >
     <div class="flex gap-[12px] items-center">
       <Network class="text-blue-600" size={24} />
@@ -72,7 +57,7 @@
       <select
         name="iface_name"
         id="iface_name"
-        bind:value={startParams.iface_name}
+        bind:value={$captureConfig.iface_name}
         class="bg-[#101922] p-[10px] rounded-md text-white border border-[#334155]"
       >
         {#each interfaces as iface}
@@ -93,7 +78,7 @@
             type="checkbox"
             name="promiscuous"
             id="promiscuousMode"
-            bind:checked={startParams.promiscuous}
+            bind:checked={$captureConfig.promiscuous}
             class="w-[18px] h-[18px] bg-[#101922] border border-[#334155] rounded cursor-pointer accent-blue-600"
           />
           <span class="text-gray-400 text-[14px]">
@@ -109,7 +94,7 @@
           type="number"
           id="snaplen"
           name="snapshot_len"
-          bind:value={startParams.snapshot_len}
+          bind:value={$captureConfig.snapshot_len}
           class="bg-[#101922] p-[10px] rounded-md text-white border border-[#334155]"
         />
       </div>
@@ -121,7 +106,7 @@
           type="number"
           id="timeout"
           name="timeout"
-          bind:value={startParams.timeout}
+          bind:value={$captureConfig.timeout}
           class="bg-[#101922] p-[10px] rounded-md text-white border border-[#334155]"
         />
       </div>
@@ -129,7 +114,7 @@
   </div>
 
   <div
-    class="w-full max-w-2xl flex flex-col bg-[#1E293B] rounded-lg text-white py-[30px] px-[25px] gap-[20px]"
+    class="w-full max-w-[1000px] flex flex-col bg-[#1E293B] rounded-lg text-white py-[30px] px-[25px] gap-[20px]"
   >
     <div class="flex justify-between">
       <div class="flex gap-[12px] items-center">
@@ -154,11 +139,11 @@
   </div>
 
   <div
-    class="w-full max-w-2xl border-t-[1px] border-t-[#334155] py-[20px] flex justify-end"
+    class="w-full max-w-[1000px] border-t-[1px] border-t-[#334155] py-[20px] flex justify-end"
   >
     <button
       class="text-[16px] text-white font-semibold bg-blue-600 py-[10px] px-[40px] rounded-lg"
-      on:click={startCapture}
+      on:click={handleApply}
     >
       Apply & Restart Service
     </button>

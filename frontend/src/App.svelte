@@ -1,19 +1,20 @@
 <script lang="ts">
   import NavBar from "./components/NavBar.svelte";
+  import DashboardTab from "./tabs/DashboardTab.svelte";
   import SettingsTab from "./tabs/SettingsTab.svelte";
 
   let selected = "dashboard";
 
-  function handleSelect(event: CustomEvent<string>) {
-    selected = event.detail;
+  function handleSelect(tab: string) {
+    selected = tab;
   }
 </script>
 
 <div class="bg-[#101922] h-screen w-screen flex">
-  <NavBar on:select={handleSelect} />
+  <NavBar onselect={handleSelect} />
   <div class="bg-[#101922] flex-1">
     {#if selected === "dashboard"}
-      <div class="text-white p-8">Dashboard</div>
+      <DashboardTab />
     {:else if selected === "network"}
       <div class="text-white p-8">Network Monitor</div>
     {:else if selected === "settings"}

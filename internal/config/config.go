@@ -26,8 +26,13 @@ var (
 
 func GetConfig() *Config {
 	configOnce.Do(func() {
-		globalConfig = &Config{}
-	})
+		globalConfig = &Config{
+			IsCapturing: false,
+			BlockedIPs:  make(map[string]bool),
+			StartTime:   time.Now(),
+		}
 
+	})
 	return globalConfig
 }
+
