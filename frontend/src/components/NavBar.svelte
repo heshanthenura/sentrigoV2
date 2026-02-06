@@ -10,6 +10,7 @@
     PanelLeftOpen,
     PanelRightOpen,
   } from "lucide-svelte";
+  import { systemStatus } from "../stores";
 
   interface Props {
     onselect?: (tab: string) => void;
@@ -138,13 +139,24 @@
   <div class="flex-1"></div>
 
   <div
-    class="bg-green-900 flex items-center p-[5px] mb-[20px] rounded-md gap-[10px] transition-all duration-200 ease-in-out {isMenuOpen
+    class="flex items-center p-[5px] mb-[20px] rounded-md gap-[10px] transition-all duration-200 ease-in-out {isMenuOpen
       ? ''
       : 'justify-center'}"
+    class:bg-green-900={$systemStatus.isOnline}
+    class:bg-red-900={!$systemStatus.isOnline}
   >
-    <div class="bg-green-500 h-[10px] w-[10px] rounded-full"></div>
+    <div
+      class="h-[10px] w-[10px] rounded-full"
+      class:bg-green-500={$systemStatus.isOnline}
+      class:bg-red-500={!$systemStatus.isOnline}
+    ></div>
     {#if isMenuOpen}
-      <div class="text-green-500">System Online</div>
+      <div
+        class:text-red-500={!$systemStatus.isOnline}
+        class:text-green-500={$systemStatus.isOnline}
+      >
+        System {$systemStatus.isOnline ? "Online" : "Offline"}
+      </div>
     {/if}
   </div>
 

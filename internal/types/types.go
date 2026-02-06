@@ -1,6 +1,8 @@
 package types
 
-import "time"
+import (
+	"time"
+)
 
 type CaptureConfig struct {
 	IfaceName   string        `json:"iface_name"`

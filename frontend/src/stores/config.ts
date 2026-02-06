@@ -1,5 +1,6 @@
 import { writable } from "svelte/store";
 export const systemStatus = writable({
+  isOnline: false,
   isRunning: false,
 });
 

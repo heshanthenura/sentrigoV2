@@ -13,10 +13,12 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/heshanthenura/sentrigov2/api/v1/routes"
 	"github.com/heshanthenura/sentrigov2/internal/job"
+	"github.com/heshanthenura/sentrigov2/internal/websock"
 )
 
 func main() {
 	r := gin.Default()
+	r.GET("/ws", websock.WsHandler)
 	r.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"http://192.168.1.101:5173", "http://localhost:5173"},
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE"},
