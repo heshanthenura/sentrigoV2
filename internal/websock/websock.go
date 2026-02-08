@@ -8,6 +8,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
+	"github.com/heshanthenura/sentrigov2/internal/config"
 )
 
 var upgrader = websocket.Upgrader{
@@ -35,6 +36,9 @@ func WsHandler(c *gin.Context) {
 
 	log.Println("new user connected")
 	log.Println("total clients:", len(clients))
+	// _ = conn.WriteMessage(websocket.TextMessage, []byte("welcome"))
+	_ = conn.WriteJSON(config.GetConfig())
+
 	var writeMu sync.Mutex
 
 	defer func() {

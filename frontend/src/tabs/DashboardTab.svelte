@@ -53,5 +53,32 @@
     </div>
   </div>
 
-  <div class="w-full max-w-[1000px]"></div>
+  <div
+    class="w-full max-w-[1000px] flex items-center justify-between gap-[20px] rounded-lg"
+  >
+    <div class="bg-[#1E293B] h-full w-full px-[20px] py-[10px] rounded-lg">
+      <h1 class="text-gray-400 font-regular">Monitoring State</h1>
+      {#if $systemStatus.isRunning}
+        <p class="text-green-500 font-semibold text-[20px]">Running</p>
+      {:else}
+        <p class="text-red-500 font-semibold text-[30px]">Inactive</p>
+      {/if}
+    </div>
+    <div class="bg-[#1E293B] h-full w-full px-[20px] py-[10px] rounded-lg">
+      <h1 class="text-gray-400 font-regular">Active Interface</h1>
+      <p class="text-white font-semibold text-[20px]">
+        {$captureConfig.iface_name === ""
+          ? "Not Selected"
+          : $captureConfig.iface_name}
+      </p>
+    </div>
+    <div class="bg-[#1E293B] h-full w-full px-[20px] py-[10px] rounded-lg">
+      <h1 class="text-gray-400 font-regular">Active Interface</h1>
+      <p class="text-white font-semibold text-[20px]">
+        {$captureConfig.iface_name === ""
+          ? "Not Selected"
+          : $captureConfig.iface_name}
+      </p>
+    </div>
+  </div>
 </div>

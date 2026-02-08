@@ -7,13 +7,14 @@ import (
 
 	"github.com/google/gopacket"
 	"github.com/google/gopacket/pcap"
+	"github.com/heshanthenura/sentrigov2/internal/config"
 	"github.com/heshanthenura/sentrigov2/internal/processors"
 	"github.com/heshanthenura/sentrigov2/internal/types"
 )
 
 func StartCapture(ctx context.Context, captureConfig types.CaptureConfig) error {
 	log.Printf("starting capture on interface: %s", captureConfig.IfaceName)
-
+	config.UpdateIsCapturing(true)
 	handle, err := pcap.OpenLive(
 		captureConfig.IfaceName,
 		captureConfig.SnapshotLen,
@@ -39,6 +40,7 @@ func StartCapture(ctx context.Context, captureConfig types.CaptureConfig) error 
 		select {
 		case <-ctx.Done():
 			log.Println("capture stopped")
+			config.UpdateIsCapturing(false)
 			<-shutdownDone
 			return nil
 

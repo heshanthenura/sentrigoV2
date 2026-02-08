@@ -11,6 +11,8 @@ import (
 var XDPLink link.Link
 
 type Config struct {
+	mu sync.RWMutex
+
 	CaptureConfig types.CaptureConfig
 	XDPLink       link.Link
 
@@ -36,3 +38,16 @@ func GetConfig() *Config {
 	return globalConfig
 }
 
+func UpdateIsCapturing(isCapturing bool) {
+	cfg := GetConfig()
+	cfg.mu.Lock()
+	cfg.IsCapturing = isCapturing
+	cfg.mu.Unlock()
+}
+
+func IsCapturing() bool {
+	cfg := GetConfig()
+	cfg.mu.RLock()
+	defer cfg.mu.RUnlock()
+	return cfg.IsCapturing
+}
