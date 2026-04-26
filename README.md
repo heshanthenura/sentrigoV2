@@ -5,5 +5,5 @@ SentriGOV2 is a real time network monitoring and intrusion detection platform fo
 The platform is built to be usable in real environments while remaining easy to understand and extend.
 
 <div align="center">
-    <p>Under Development</p>
+    <p>Still Under Development</p>
 </div>
