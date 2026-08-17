@@ -2,7 +2,7 @@ package main
 
 import (
 	"log"
-	"sentrigoV2/engine"
+	"sentrigoV2/engine/internal/engine"
 )
 
 func main() {
